@@ -1,0 +1,33 @@
+{{- $namesp := .Values.namespace | default }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "node-red.name" . }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  generation: 1
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . }}
+        {{- end }}
+      secretName: {{ $namesp}}-tls
+    {{- end }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.hosts.host }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "node-red.name" . }}
+                port:
+                  number: {{ .Values.service.port }}

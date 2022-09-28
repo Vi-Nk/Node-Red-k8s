@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app:  {{ include "node-red.name" . }}
+  name: {{ include "node-red.name" . }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app:  {{ include "node-red.name" . }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "node-red.name" . }}
+    spec:
+      containers:
+        - image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: {{ .Chart.Name }}
+          securityContext:
+            privileged: {{ .Values.securityContext.privileged}}
+          ports:
+            - containerPort: 1880
+              protocol: TCP
+          resources: {}
+          env:
+            - name: TZ # Docker TimeZone Env
+              value: UTC
+          volumeMounts:
+            - mountPath: {{.Values.volumeMounts.mountPath}}
+              name:  {{ .Chart.Name }}-claim0
+      volumes:
+       - name:  {{ .Chart.Name }}-claim0 #PVC from the node-pvc.yaml
+         persistentVolumeClaim:
+           claimName:  {{ .Chart.Name }}-claim0
+      securityContext:
+          runAsUser: {{ .Values.securityContext.runAsUser}}
+          runAsGroup:  {{ .Values.securityContext.runAsGroup}}
+          fsGroup: {{ .Values.securityContext.fsGroup}}
