@@ -2,3 +2,5 @@
 *.yml linguist-language=YAML
 *.yaml linguist-detectable=true
 *.yaml linguist-language=YAML
+*.tpl linguist-detectable=true
+*.tpl linguist-language=YAML
